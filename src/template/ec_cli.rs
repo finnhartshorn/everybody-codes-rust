@@ -50,6 +50,7 @@ pub fn download(day: Day) -> Result<Output, EcCommandError> {
         let input_path = get_input_path(day, part);
         let sample_path = get_sample_path(day, part);
         let sample_answer_path = get_sample_answer_path(day, part);
+        let desc_path = get_description_path(day, part);
 
         let mut args = vec![
             "fetch".to_string(),
@@ -61,6 +62,10 @@ pub fn download(day: Day) -> Result<Output, EcCommandError> {
             sample_path.clone(),
             "--sample-answer-path".to_string(),
             sample_answer_path.clone(),
+            "--input-path".to_string(),
+            input_path.clone(),
+            "--description-path".to_string(),
+            desc_path.clone(),
         ];
 
         if let Some(year) = get_year() {
@@ -71,12 +76,10 @@ pub fn download(day: Day) -> Result<Output, EcCommandError> {
         let _output = call_ec_cli(&args)?;
 
         if part == 1 {
-            // Only download description once (it's the same for all parts)
-            let desc_path = get_description_path(day);
             println!("---");
-            println!("📝 Successfully wrote description to \"{}\".", &desc_path);
         }
 
+        println!("📝 Successfully wrote description to \"{}\".", &desc_path);
         println!("📥 Successfully wrote input to \"{}\".", &input_path);
         println!("🧪 Successfully wrote sample to \"{}\".", &sample_path);
         println!("✅ Successfully wrote sample answer to \"{}\".", &sample_answer_path);
@@ -124,8 +127,8 @@ fn get_sample_answer_path(day: Day, part: u8) -> String {
     format!("data/answers/{day}-{part}.txt")
 }
 
-fn get_description_path(day: Day) -> String {
-    format!("data/descriptions/{day}.html")
+fn get_description_path(day: Day, part: u8) -> String {
+    format!("data/descriptions/{day}-{part}.html")
 }
 
 fn get_year() -> Option<u16> {
