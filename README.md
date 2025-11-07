@@ -39,7 +39,7 @@
 3. Set the year in `.cargo/config.toml`:
    ```toml
    [env]
-   EC_YEAR = "2024"  # Update to your target year
+   EC_YEAR = "2025"  # Update to your target year
    ```
 
 ## Usage
