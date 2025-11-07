@@ -1,5 +1,5 @@
 use std::{
-    fs::{File, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::Write,
     process,
 };
@@ -28,6 +28,20 @@ fn create_file(path: &str) -> Result<File, std::io::Error> {
 }
 
 pub fn handle(day: Day, overwrite: bool) {
+    // Ensure directories exist
+    if let Err(e) = fs::create_dir_all("data/inputs") {
+        eprintln!("Failed to create data/inputs directory: {e}");
+        process::exit(1);
+    }
+    if let Err(e) = fs::create_dir_all("data/samples") {
+        eprintln!("Failed to create data/samples directory: {e}");
+        process::exit(1);
+    }
+    if let Err(e) = fs::create_dir_all("data/descriptions") {
+        eprintln!("Failed to create data/descriptions directory: {e}");
+        process::exit(1);
+    }
+
     let module_path = format!("src/bin/{day}.rs");
 
     let mut file = match safe_create_file(&module_path, overwrite) {
@@ -52,11 +66,10 @@ pub fn handle(day: Day, overwrite: bool) {
         }
     }
 
-    // Create input, sample, and answer files for all 3 parts
+    // Create input and sample files for all 3 parts
     for part in 1..=3 {
         let input_path = format!("data/inputs/{day}-{part}.txt");
         let sample_path = format!("data/samples/{day}-{part}.txt");
-        let answer_path = format!("data/answers/{day}-{part}.txt");
 
         match create_file(&input_path) {
             Ok(_) => {
@@ -74,16 +87,6 @@ pub fn handle(day: Day, overwrite: bool) {
             }
             Err(e) => {
                 eprintln!("Failed to create sample file: {e}");
-                process::exit(1);
-            }
-        }
-
-        match create_file(&answer_path) {
-            Ok(_) => {
-                println!("Created empty answer file \"{}\"", &answer_path);
-            }
-            Err(e) => {
-                eprintln!("Failed to create answer file: {e}");
                 process::exit(1);
             }
         }
