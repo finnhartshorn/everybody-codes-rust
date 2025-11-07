@@ -3,10 +3,7 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[cfg(feature = "today")]
-use chrono::{Datelike, FixedOffset, NaiveDate, Utc, Weekday};
-
-#[cfg(feature = "today")]
-const SERVER_UTC_OFFSET: i32 = 1;
+use chrono::{Datelike, Duration, NaiveDate, Utc, Weekday};
 
 /// A valid quest day number (i.e. an integer in range 1 to 25).
 ///
@@ -47,18 +44,22 @@ impl Day {
 impl Day {
     /// Returns the current quest day during the Everybody Codes event, `None` otherwise.
     ///
-    /// The Everybody Codes event starts on the first Monday of November (UTC+1) and runs
-    /// for 20 weekdays (Monday-Friday only).
+    /// The Everybody Codes event starts on the first Monday of November at 23:00 UTC
+    /// and runs for 20 weekdays (Monday-Friday only). Each new puzzle is released at 23:00 UTC.
     pub fn today() -> Option<Self> {
-        let offset = FixedOffset::east_opt(SERVER_UTC_OFFSET * 3600)?;
-        let today = Utc::now().with_timezone(&offset);
+        let now = Utc::now();
 
-        // Only run in November
-        if today.month() != 11 {
+        // Shift time back by 23 hours to align puzzle releases with day boundaries
+        // This makes 23:00 UTC the start of each puzzle day
+        let adjusted_time = now - Duration::hours(23);
+        let adjusted_date = adjusted_time.date_naive();
+
+        // Only run in November (after adjustment)
+        if adjusted_date.month() != 11 {
             return None;
         }
 
-        let year = today.year();
+        let year = adjusted_date.year();
 
         // Find the first Monday of November
         let first_monday = (1..=7)
@@ -67,15 +68,13 @@ impl Day {
                     .filter(|date| date.weekday() == Weekday::Mon)
             })?;
 
-        let today_naive = today.date_naive();
-
         // Check if today is before the event starts
-        if today_naive < first_monday {
+        if adjusted_date < first_monday {
             return None;
         }
 
         // Check if today is a weekday
-        if matches!(today_naive.weekday(), Weekday::Sat | Weekday::Sun) {
+        if matches!(adjusted_date.weekday(), Weekday::Sat | Weekday::Sun) {
             return None;
         }
 
@@ -83,7 +82,7 @@ impl Day {
         let mut weekday_count = 0;
         let mut current = first_monday;
 
-        while current <= today_naive {
+        while current <= adjusted_date {
             if !matches!(current.weekday(), Weekday::Sat | Weekday::Sun) {
                 weekday_count += 1;
             }
