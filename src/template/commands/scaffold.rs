@@ -52,10 +52,11 @@ pub fn handle(day: Day, overwrite: bool) {
         }
     }
 
-    // Create input and sample files for all 3 parts
+    // Create input, sample, and answer files for all 3 parts
     for part in 1..=3 {
         let input_path = format!("data/inputs/{day}-{part}.txt");
         let sample_path = format!("data/samples/{day}-{part}.txt");
+        let answer_path = format!("data/answers/{day}-{part}.txt");
 
         match create_file(&input_path) {
             Ok(_) => {
@@ -73,6 +74,16 @@ pub fn handle(day: Day, overwrite: bool) {
             }
             Err(e) => {
                 eprintln!("Failed to create sample file: {e}");
+                process::exit(1);
+            }
+        }
+
+        match create_file(&answer_path) {
+            Ok(_) => {
+                println!("Created empty answer file \"{}\"", &answer_path);
+            }
+            Err(e) => {
+                eprintln!("Failed to create answer file: {e}");
                 process::exit(1);
             }
         }

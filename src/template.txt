@@ -19,18 +19,30 @@ mod tests {
     #[test]
     fn test_part_one() {
         let result = part_one(&everybody_codes::template::read_file("samples", DAY, 1));
-        assert_eq!(result, None);
+        let expected = everybody_codes::template::read_file("answers", DAY, 1)
+            .trim()
+            .parse()
+            .ok();
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_part_two() {
         let result = part_two(&everybody_codes::template::read_file("samples", DAY, 2));
-        assert_eq!(result, None);
+        let expected = everybody_codes::template::read_file("answers", DAY, 2)
+            .trim()
+            .parse()
+            .ok();
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_part_three() {
         let result = part_three(&everybody_codes::template::read_file("samples", DAY, 3));
-        assert_eq!(result, None);
+        let expected = everybody_codes::template::read_file("answers", DAY, 3)
+            .trim()
+            .parse()
+            .ok();
+        assert_eq!(result, expected);
     }
 }
