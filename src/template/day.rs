@@ -3,18 +3,18 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[cfg(feature = "today")]
-use chrono::{Datelike, FixedOffset, Utc};
+use chrono::{Datelike, FixedOffset, NaiveDate, Utc, Weekday};
 
 #[cfg(feature = "today")]
-const SERVER_UTC_OFFSET: i32 = -5;
+const SERVER_UTC_OFFSET: i32 = 1;
 
-/// A valid day number of advent (i.e. an integer in range 1 to 25).
+/// A valid quest day number (i.e. an integer in range 1 to 25).
 ///
 /// # Display
 /// This value displays as a two digit number.
 ///
 /// ```
-/// # use advent_of_code::Day;
+/// # use everybody_codes::Day;
 /// let day = Day::new(8).unwrap();
 /// assert_eq!(day.to_string(), "08")
 /// ```
@@ -45,12 +45,54 @@ impl Day {
 
 #[cfg(feature = "today")]
 impl Day {
-    /// Returns the current day if it's between the 1st and the 25th of december, `None` otherwise.
+    /// Returns the current quest day during the Everybody Codes event, `None` otherwise.
+    ///
+    /// The Everybody Codes event starts on the first Monday of November (UTC+1) and runs
+    /// for 20 weekdays (Monday-Friday only).
     pub fn today() -> Option<Self> {
         let offset = FixedOffset::east_opt(SERVER_UTC_OFFSET * 3600)?;
         let today = Utc::now().with_timezone(&offset);
-        if today.month() == 12 && today.day() <= 25 {
-            Self::new(u8::try_from(today.day()).ok()?)
+
+        // Only run in November
+        if today.month() != 11 {
+            return None;
+        }
+
+        let year = today.year();
+
+        // Find the first Monday of November
+        let first_monday = (1..=7)
+            .find_map(|day| {
+                NaiveDate::from_ymd_opt(year, 11, day)
+                    .filter(|date| date.weekday() == Weekday::Mon)
+            })?;
+
+        let today_naive = today.date_naive();
+
+        // Check if today is before the event starts
+        if today_naive < first_monday {
+            return None;
+        }
+
+        // Check if today is a weekday
+        if matches!(today_naive.weekday(), Weekday::Sat | Weekday::Sun) {
+            return None;
+        }
+
+        // Count weekdays since the first Monday
+        let mut weekday_count = 0;
+        let mut current = first_monday;
+
+        while current <= today_naive {
+            if !matches!(current.weekday(), Weekday::Sat | Weekday::Sun) {
+                weekday_count += 1;
+            }
+            current = current.succ_opt()?;
+        }
+
+        // Event runs for 20 weekdays
+        if weekday_count > 0 && weekday_count <= 20 {
+            Self::new(weekday_count)
         } else {
             None
         }
@@ -100,12 +142,12 @@ impl Display for DayFromStrError {
 
 /* -------------------------------------------------------------------------- */
 
-/// An iterator that yields every day of advent from the 1st to the 25th.
+/// An iterator that yields every quest day from the 1st to the 25th.
 pub fn all_days() -> AllDays {
     AllDays::new()
 }
 
-/// An iterator that yields every day of advent from the 1st to the 25th.
+/// An iterator that yields every quest day from the 1st to the 25th.
 pub struct AllDays {
     current: u8,
 }
