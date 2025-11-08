@@ -73,16 +73,38 @@ pub fn download(day: Day) -> Result<Output, EcCommandError> {
             args.push(year.to_string());
         }
 
-        let _output = call_ec_cli(&args)?;
+        let result = call_ec_cli(&args);
 
         if part == 1 {
             println!("---");
         }
 
-        println!("📝 Successfully wrote description to \"{}\".", &desc_path);
-        println!("📥 Successfully wrote input to \"{}\".", &input_path);
-        println!("🧪 Successfully wrote sample to \"{}\".", &sample_path);
-        println!("✅ Successfully wrote sample answer to \"{}\".", &sample_answer_path);
+        match result {
+            Ok(_) => {
+                println!("📝 Successfully wrote description to \"{}\".", &desc_path);
+                println!("📥 Successfully wrote input to \"{}\".", &input_path);
+                println!("🧪 Successfully wrote sample to \"{}\".", &sample_path);
+                println!("✅ Successfully wrote sample answer to \"{}\".", &sample_answer_path);
+            }
+            Err(_) => {
+                // If download fails (e.g., part not available yet), write "0" to sample and answer
+                if part > 1 {
+                    if let Err(e) = std::fs::write(&sample_path, "0") {
+                        eprintln!("Failed to write default sample to {}: {}", &sample_path, e);
+                    }
+                    if let Err(e) = std::fs::write(&sample_answer_path, "0") {
+                        eprintln!(
+                            "Failed to write default sample answer to {}: {}",
+                            &sample_answer_path, e
+                        );
+                    }
+                    println!("⚠️  Part {} not available, wrote defaults to sample and answer files.", part);
+                } else {
+                    // Part 1 should always be available, so return the error
+                    return Err(result.unwrap_err());
+                }
+            }
+        }
 
         if part < 3 {
             println!();
